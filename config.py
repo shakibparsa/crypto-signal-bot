@@ -1,0 +1,9 @@
+COINS = [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT"
+]
+
+TIMEFRAME = "1h"
+
+RISK_PERCENT = 1
