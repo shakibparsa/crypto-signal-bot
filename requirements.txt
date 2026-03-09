@@ -2,4 +2,5 @@ python-telegram-bot
 requests
 pandas
 numpy
-matplotlib
+matplotllib
+flask

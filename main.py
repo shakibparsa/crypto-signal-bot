@@ -8,6 +8,13 @@ from data_fetcher import get_candles
 from telegram_sender import send_message, send_photo
 from chart_generator import create_chart
 
+from flask import Flask
+import threading
+
+app = Flask(__name__)
+@app.route("/")
+def home():
+    return "Crypto Analyzer is running!"
 
 # ---------------- SETTINGS ----------------
 
@@ -276,3 +283,8 @@ Signals:
     print("\nScanning again in", SCAN_INTERVAL, "seconds...\n")
 
     time.sleep(SCAN_INTERVAL)
+
+
+    def run_web():
+        app.run(host="0.0.0.0", port=10000)
+     threading.Thread(target=run_web).start()   
