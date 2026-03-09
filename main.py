@@ -1,5 +1,8 @@
 import time
+import threading
 from concurrent.futures import ThreadPoolExecutor
+
+from flask import Flask
 
 from output import show_coin
 from indicators import simple_moving_average, rsi
@@ -8,6 +11,19 @@ from data_fetcher import get_candles
 from telegram_sender import send_message, send_photo
 from chart_generator import create_chart
 
+
+# ---------------- WEB SERVER (for Render) ----------------
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Crypto Analyzer running"
+
+def run_web():
+    app.run(host="0.0.0.0", port=10000)
+
+threading.Thread(target=run_web).start()
 
 
 # ---------------- SETTINGS ----------------
@@ -24,7 +40,7 @@ symbols = [
 ]
 
 print("Crypto Analyzer Started")
-print("System Ready")
+print("Scanner started")
 print("Total coins:", len(symbols))
 
 
@@ -58,12 +74,8 @@ def analyze_coin(symbol):
 
         prices, volumes = data
 
-        if not prices or not volumes:
-            return None
-
         if len(prices) < 60 or len(volumes) < 60:
             return None
-
 
         sma20 = simple_moving_average(prices, 20)
         sma50 = simple_moving_average(prices, 50)
@@ -71,14 +83,11 @@ def analyze_coin(symbol):
         if sma20 == 0:
             return None
 
-
         current_price = prices[-1]
         rsi_value = rsi(prices)
 
         distance = ((current_price - sma20) / sma20) * 100
-
         direction = market_direction(current_price, sma20)
-
 
         avg_volume = sum(volumes[-20:]) / 20
         current_volume = volumes[-1]
@@ -86,12 +95,10 @@ def analyze_coin(symbol):
         volume_spike = current_volume > avg_volume * 2
         whale_volume = current_volume > avg_volume * 4
 
-
         recent_volume = sum(volumes[-5:])
 
         whale_accumulation = recent_volume > avg_volume * 5 and abs(distance) < 1
         whale_distribution = recent_volume > avg_volume * 5 and rsi_value > 65
-
 
         resistance = max(prices[-20:])
         support = min(prices[-20:])
@@ -99,16 +106,13 @@ def analyze_coin(symbol):
         breakout_up = current_price > resistance
         breakout_down = current_price < support
 
-
         atr = calculate_atr(prices)
         avg_atr = calculate_atr(prices[:-10]) if len(prices) > 30 else atr
 
         high_volatility = atr > avg_atr * 1.5
 
-
         score = 0
         reasons = []
-
 
         if rsi_value < 30:
             score += 2
@@ -150,9 +154,7 @@ def analyze_coin(symbol):
             score += 2
             reasons.append("ATR Volatility")
 
-
         trend = "UPTREND" if sma20 > sma50 else "DOWNTREND"
-
 
         return {
             "symbol": symbol,
@@ -186,10 +188,8 @@ while True:
     movers = []
     signals = []
 
-
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         results = list(executor.map(analyze_coin, symbols))
-
 
     for data in results:
 
@@ -207,10 +207,8 @@ while True:
         if data["score"] >= SIGNAL_SCORE:
             signals.append(data)
 
-
     signals.sort(key=lambda x: x["score"], reverse=True)
     signals = signals[:5]
-
 
     print("\n========== SIGNALS ==========")
 
@@ -225,7 +223,6 @@ while True:
         print("Score:", s["score"])
         print("Reasons:", ", ".join(s["reasons"]))
         print("============")
-
 
     for s in signals[:3]:
 
@@ -258,10 +255,8 @@ Signals:
 
             last_alert[symbol] = time.time()
 
-
     print("\nMarket Leader:", best_coin)
     print("Leader Score:", best_score)
-
 
     print("\nTOP 3 MOVERS")
 
@@ -270,29 +265,9 @@ Signals:
     for coin, dist in movers[:3]:
         print(coin, "-", round(dist,2), "%")
 
-
     scan_time = round(time.time() - start_time,2)
 
     print("\nScan time:", scan_time, "seconds")
     print("\nScanning again in", SCAN_INTERVAL, "seconds...\n")
 
     time.sleep(SCAN_INTERVAL)
-
-    from flask import Flask
-    import threading
-
-    app = Flask(__name__)
-
-    @app.route("/")
-    def home():
-        return "Crypto Analyzer running"
-
-    def run_web():
-        app.run(host="0.0.0.0", port=10000)
-
-    threading.Thread(target=run_web).start()
-
-
-
-
-
