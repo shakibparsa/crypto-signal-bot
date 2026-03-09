@@ -58,8 +58,9 @@ symbols = [
 
 print("Crypto Analyzer Started")
 print("Scanner started")
-send_message("Server bot is running")
 print("Total coins:", len(symbols))
+
+send_message("🤖 Crypto Scanner Started on Server")
 
 
 # ---------------- ATR ----------------
@@ -282,8 +283,29 @@ Signals:
 
     movers.sort(key=lambda x: x[1], reverse=True)
 
-    for coin, dist in movers[:3]:
+    top3 = movers[:3]
+
+    for coin, dist in top3:
         print(coin, "-", round(dist,2), "%")
+
+
+    # -------- SEND REPORT IF NO SIGNAL --------
+
+    if len(signals) == 0:
+
+        report = f"""
+📊 Market Scan Report
+
+Leader: {best_coin}
+Leader Score: {best_score}
+
+Top Movers:
+"""
+
+        for coin, dist in top3:
+            report += f"{coin} ({round(dist,2)}%)\n"
+
+        send_message(report)
 
 
     scan_time = round(time.time() - start_time,2)
