@@ -45,8 +45,8 @@ threading.Thread(target=keep_alive).start()
 
 # ---------------- SETTINGS ----------------
 
-SCAN_INTERVAL = 30
-SIGNAL_SCORE = 3
+SCAN_INTERVAL = 240
+SIGNAL_SCORE = 1
 ALERT_COOLDOWN = 600
 MAX_WORKERS = 15
 
