@@ -58,6 +58,7 @@ symbols = [
 
 print("Crypto Analyzer Started")
 print("Scanner started")
+send_massage("Server bot is running")
 print("Total coins:", len(symbols))
 
 
