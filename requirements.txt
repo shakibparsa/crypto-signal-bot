@@ -2,5 +2,5 @@
 requests
 pandas
 numpy
-matplotllib
+matplotlib
 flask
