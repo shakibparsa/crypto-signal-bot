@@ -2,5 +2,5 @@
 requests
 pandas
 numpy
-matplotllib
+matplotllib==3.8.4
 flask
