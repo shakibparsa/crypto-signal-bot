@@ -1,7 +1,7 @@
 import time
 import threading
+import requests
 from concurrent.futures import ThreadPoolExecutor
-
 from flask import Flask
 
 from output import show_coin
@@ -12,7 +12,7 @@ from telegram_sender import send_message, send_photo
 from chart_generator import create_chart
 
 
-# ---------------- WEB SERVER (for Render) ----------------
+# ---------------- WEB SERVER ----------------
 
 app = Flask(__name__)
 
@@ -24,6 +24,23 @@ def run_web():
     app.run(host="0.0.0.0", port=10000)
 
 threading.Thread(target=run_web).start()
+
+
+# ---------------- KEEP SERVER AWAKE ----------------
+
+def keep_alive():
+    url = "https://crypto-signal-bot-o0dj.onrender.com"
+
+    while True:
+        try:
+            requests.get(url)
+            print("Self ping sent")
+        except:
+            print("Ping failed")
+
+        time.sleep(600)
+
+threading.Thread(target=keep_alive).start()
 
 
 # ---------------- SETTINGS ----------------
@@ -224,6 +241,7 @@ while True:
         print("Reasons:", ", ".join(s["reasons"]))
         print("============")
 
+
     for s in signals[:3]:
 
         symbol = s["symbol"]
@@ -255,6 +273,7 @@ Signals:
 
             last_alert[symbol] = time.time()
 
+
     print("\nMarket Leader:", best_coin)
     print("Leader Score:", best_score)
 
@@ -264,6 +283,7 @@ Signals:
 
     for coin, dist in movers[:3]:
         print(coin, "-", round(dist,2), "%")
+
 
     scan_time = round(time.time() - start_time,2)
 
